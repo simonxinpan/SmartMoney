@@ -206,10 +206,24 @@
                     if (!response.ok) { throw new Error(`网络响应错误: ${response.statusText}`); }
                     return response.json();
                 })
-                .then(data => {
-                    console.log('成功获取到数据！');
-                    alert('成功从FMP获取到数据！'); // 增加一个弹窗提示
-                    console.log(data);
+.then(data => {
+    console.log('成功获取到数据！', data);
+    alert('成功从FMP获取到数据！现在将为您渲染到页面上...');
+
+    const feedContainer = document.getElementById('feed-container');
+    feedContainer.innerHTML = ''; // 清空“正在加载”的提示
+
+    if (data && data.length > 0) {
+        // 我们只渲染API返回的前10条数据作为示例
+        data.slice(0, 10).forEach(item => {
+            // 将API返回的原始数据，转换为我们卡片需要的数据格式
+            const cardData = {
+                firmName: '桥水基金', // 13F API不直接返回基金名，我们先用静态的
+                action: '持仓', // 这是一个简化的动作，未来可以根据变化量判断是增持还是减持
+                stockName: item.nameOfIssuer,
+                stockTicker: item.cusip, // FMP使用CUSIP作为ID, 未来需要转换为Ticker
+                shares: `持有 ${item.shares.toLocaleString()} 
+            console.log(data);
                     
                     feedContainer.innerHTML = ''; // 清空加载状态
                     if (data && data.length > 0) {

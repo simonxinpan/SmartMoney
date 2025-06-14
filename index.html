@@ -141,11 +141,9 @@
                 <div id="feed-container">
                     <!-- 初始静态卡片，将被JS动态内容替换 -->
                     <div class="feed-card">
-                        <img src="https://via.placeholder.com/50/2c3e50/ffffff?text=B" alt="Bridgewater" class="logo">
+                        <div class="logo" style="background-color:#eee; display:flex; align-items:center; justify-content:center;">...</div>
                         <div class="content">
-                            <p class="title"><a href="#" class="clickable">桥水基金</a> <span class="tag tag-buy clickable-tag">增持</span></p>
-                            <p class="description">大幅增持 <a href="#" class="clickable"><strong>英伟达 (NVDA)</strong></a> 25万股。</p>
-                            <p class="meta">数据来源: 13F文件 | 日期: 2024-05-15</p>
+                            <p>正在加载真实数据...</p>
                         </div>
                     </div>
                 </div>
@@ -194,47 +192,71 @@
     </div>
 
     <script>
-        // --- 第一部分：API 配置与真实数据获取 ---
         const apiKey = 'ZYpXufkAUGUmzHLH5F4WeFFhStiaL7xu'; // 替换为您自己的FMP API Key
         
-        // 这是一个示例函数，未来我们会用它来获取数据并更新页面
         function fetchSmartMoneyData() {
-            // 我们先用一些静态的假数据来模拟API返回的结果
-            const fakeData = [
-                { firmName: '桥水基金', action: '增持', stockName: '英伟达 (NVDA)', shares: '25万股', source: '13F文件', date: '2024-05-15', type: 'buy', logoText: 'B' },
-                { firmName: 'Meta Platforms (META) CEO', action: '内部人买入', stockName: '', shares: '行权买入 5万股公司股票', source: 'Form 4', date: '2024-05-20', type: 'insider', logoText: 'CEO' },
-                { firmName: '方舟基金 (ARK Invest)', action: '减持', stockName: '特斯拉 (TSLA)', shares: '卖出 10万股', source: '每日持仓报告', date: '2024-05-19', type: 'sell', logoText: 'A' },
-                { firmName: '伯克希尔哈撒韦', action: '建仓', stockName: '安达保险 (CB)', shares: '占投资组合0.8%', source: '13F文件', date: '2024-05-15', type: 'new', logoText: 'BH' },
-                { firmName: '高盛分析师', action: '上调评级', stockName: '微软 (MSFT)', shares: '目标价从 $450 上调至 $500', source: '分析师报告', date: '2024-05-21', type: 'analyst', logoText: 'GS' }
-            ];
-
+            const cik = '0001061981'; // 桥水基金的CIK
+            const url = `https://financialmodelingprep.com/api/v3/form-13f?cik=${cik}&apikey=${apiKey}`;
             const feedContainer = document.getElementById('feed-container');
-            feedContainer.innerHTML = ''; // 清空现有的静态卡片
 
-            fakeData.forEach(item => {
-                const cardHTML = `
-                    <div class="feed-card">
-                        <img src="https://via.placeholder.com/50/6c757d/ffffff?text=${item.logoText}" alt="${item.firmName}" class="logo">
-                        <div class="content">
-                            <p class="title">
-                                <a href="#" class="clickable" onclick="alert('跳转到[${item.firmName}]的主页')">${item.firmName}</a> 
-                                <span class="tag tag-${item.type} clickable-tag">${item.action}</span>
-                            </p>
-                            <p class="description">
-                                ${item.shares} 
-                                ${item.stockName ? `<a href="#" class="clickable" onclick="alert('跳转到[${item.stockName}]的分析页面')"><strong>${item.stockName}</strong></a>` : ''}
-                            </p>
-                            <p class="meta">数据来源: ${item.source} | 日期: ${item.date}</p>
-                        </div>
-                    </div>
-                `;
-                feedContainer.innerHTML += cardHTML;
-            });
+            console.log('正在从FMP获取真实数据...');
+
+            fetch(url)
+                .then(response => {
+                    if (!response.ok) { throw new Error(`网络响应错误: ${response.statusText}`); }
+                    return response.json();
+                })
+                .then(data => {
+                    console.log('成功获取到数据！');
+                    console.log(data);
+                    
+                    feedContainer.innerHTML = ''; // 清空加载状态
+                    if (data && data.length > 0) {
+                        // 暂时只渲染API返回的前5条数据作为示例
+                        data.slice(0, 5).forEach(item => {
+                            const cardData = {
+                                firmName: '桥水基金', // 13F API不直接返回基金名，我们先用静态的
+                                action: '持仓',
+                                stockName: item.nameOfIssuer,
+                                stockTicker: item.cusip, // FMP可能用CUSIP, 真实场景需要转换
+                                shares: `持有 ${item.shares.toLocaleString()} 股`,
+                                source: '13F文件',
+                                date: item.date,
+                                type: 'buy', // 暂时都设为buy
+                                logoText: 'B'
+                            };
+                            feedContainer.innerHTML += createCardHTML(cardData);
+                        });
+                    } else {
+                        feedContainer.innerHTML = '<div class="feed-card"><p>未能从API获取到有效数据。</p></div>';
+                    }
+                })
+                .catch(error => {
+                    console.error('获取真实数据时发生严重错误:', error);
+                    feedContainer.innerHTML = `<div class="feed-card"><p style="color:red;">数据加载失败！错误信息: ${error.message}。请检查API Key或网络连接。</p></div>`;
+                });
         }
 
-        // 页面加载时，自动执行一次数据“获取”和渲染
-        document.addEventListener('DOMContentLoaded', fetchSmartMoneyData);
+        function createCardHTML(item) {
+            return `
+                <div class="feed-card">
+                    <img src="https://via.placeholder.com/50/6c757d/ffffff?text=${item.logoText}" alt="${item.firmName}" class="logo">
+                    <div class="content">
+                        <p class="title">
+                            <a href="#" class="clickable">${item.firmName}</a> 
+                            <span class="tag tag-${item.type} clickable-tag">${item.action}</span>
+                        </p>
+                        <p class="description">
+                            ${item.shares} 
+                            <a href="#" class="clickable"><strong>${item.stockName} (${item.stockTicker})</strong></a>
+                        </p>
+                        <p class="meta">数据来源: ${item.source} | 日期: ${item.date}</p>
+                    </div>
+                </div>
+            `;
+        }
 
+        document.addEventListener('DOMContentLoaded', fetchSmartMoneyData);
     </script>
 </body>
 </html>

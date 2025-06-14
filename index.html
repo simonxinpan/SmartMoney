@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>聪明钱 (SmartMoney) - 追踪顶级机构，轻松抄作业</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; background-color: #f4f7f6; margin: 0; padding: 20px; color: #333; }
+        .container { max-width: 1200px; margin: 0 auto; }
+        
+        .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .brand-area { display: flex; align-items: center; gap: 10px; }
+        .brand-logo { width: 32px; height: 32px; background-color: #1abc9c; color: white; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 20px; }
+        .brand-text .cn-name { font-size: 1.8em; font-weight: bold; color: #1abc9c; display: block; line-height: 1; }
+        .brand-text .en-name { font-size: 1.1em; color: #7f8c8d; display: block; }
+        
+        .main-title { text-align: center; margin-bottom: 30px; }
+        .main-title h1 { font-size: 2.2em; font-weight: 700; color: #2c3e50; margin: 0; }
+
+        .main-layout { display: flex; gap: 20px; align-items: flex-start; }
+        .main-content { flex: 3; }
+        .sidebar { flex: 1; min-width: 280px; position: sticky; top: 20px; }
+        @media (max-width: 992px) { .main-layout { flex-direction: column; } .sidebar { width: 100%; min-width: unset; position: static; } }
+        .card { background-color: #fff; border-radius: 8px; padding: 20px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+
+        .feature-nav h2 { margin-top: 0; color: #16a085; font-size: 1.5em; text-align: center; margin-bottom: 20px; }
+        .feature-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; }
+        .feature-item { background-color: #e8f6f3; padding: 15px; border-radius: 8px; cursor: pointer; transition: transform 0.2s; text-decoration: none; color: inherit; text-align: center; }
+        .feature-item:hover { transform: translateY(-5px); }
+        .feature-item .icon { font-size: 2.5em; }
+        .feature-item .title { font-weight: bold; margin-top: 5px; }
+        
+        .filter-section { background-color: #fff; border-radius: 8px; padding: 15px; margin-top: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        .feed-header { display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid #e0e0e0; margin-bottom: 20px; }
+        .feed-header h2 { font-size: 1.5em; color: #34495e; margin: 0; padding-bottom: 10px; }
+        
+        .filter-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 15px; }
+        .filter-toolbar .search-input { flex-grow: 1; padding: 10px; border: 1px solid #ccc; border-radius: 5px; font-size: 1em; min-width: 200px; }
+        .filter-toolbar .btn-group { display: flex; }
+        .filter-toolbar .btn { padding: 10px 15px; border: 1px solid #ccc; background-color: #fff; cursor: pointer; font-size: 0.9em; }
+        .filter-toolbar .btn:first-child { border-radius: 5px 0 0 5px; }
+        .filter-toolbar .btn:last-child { border-radius: 0 5px 5px 0; border-left: none; }
+        .filter-toolbar .btn.active { background-color: #1abc9c; color: #fff; border-color: #1abc9c; }
+        .filter-toolbar .time-select { padding: 10px; border: 1px solid #ccc; border-radius: 5px; font-size: 0.9em; background-color: #fff;}
+
+        .lockers-wrapper { display: flex; align-items: center; gap: 8px; margin-top: 15px; flex-wrap: wrap; border-top: 1px dashed #e0e0e0; padding-top: 15px; }
+        .lockers-wrapper .locker-label { font-size: 0.9em; font-weight: 500; color: #7f8c8d; }
+        .locker { display: flex; align-items: center; gap: 5px; padding: 5px 10px; background-color: #e8f6f3; border-radius: 15px; font-size: 0.9em; color: #16a085; cursor: pointer; border: 1px solid #d0ece7;}
+        .locker svg { width: 14px; height: 14px; fill: #16a085; }
+        .locker.pro { background-color: #fef9e7; color: #f39c12; border-color: #fdebd0; }
+        .locker.pro svg { fill: #f39c12; }
+        
+        .feed-card { background-color: #fff; border-radius: 8px; padding: 15px; margin-bottom: 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); display: flex; align-items: center; gap: 15px; }
+        .feed-card .logo { width: 50px; height: 50px; border-radius: 50%; object-fit: cover; flex-shrink: 0; }
+        .feed-card .content { flex-grow: 1; }
+        .feed-card .title { font-weight: bold; margin: 0 0 5px 0; }
+        .feed-card .description { margin: 0; }
+        .feed-card .tag { padding: 3px 8px; border-radius: 12px; font-size: 0.8em; color: #fff; }
+        .tag-buy { background-color: #2ecc71; } .tag-sell { background-color: #e74c3c; } .tag-insider { background-color: #3498db; } .tag-analyst { background-color: #9b59b6; } .tag-new { background-color: #f39c12; }
+        .meta { color: #95a5a6; font-size: 0.9em; }
+        .clickable { cursor: pointer; text-decoration: none; color: #16a085; font-weight: 500;}
+        .clickable:hover { text-decoration: underline; }
+        .clickable-tag { cursor: pointer; transition: opacity 0.2s; } .clickable-tag:hover { opacity: 0.8; }
+        .sidebar .card h3 { margin-top: 0; margin-bottom: 15px; font-size: 1.2em; color: #34495e; border-bottom: 1px solid #eee; padding-bottom: 10px; }
+        .category-list { list-style-type: none; padding: 0; margin: 0; }
+        .category-list li { margin-bottom: 10px; }
+        .category-list a { text-decoration: none; color: #2c3e50; display: block; padding: 8px; border-radius: 5px; transition: background-color 0.2s; }
+        .category-list a:hover { background-color: #f0f3f4; }
+        .category-list .more-link { font-weight: 500; color: #3498db; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="page-header">
+            <div class="brand-area">
+                <div class="brand-logo">$</div>
+                <div class="brand-text">
+                    <span class="cn-name">聪明钱</span>
+                    <span class="en-name">SmartMoney</span>
+                </div>
+            </div>
+        </header>
+
+        <header class="main-title">
+            <h1>一键锁定顶级投资机构最新买卖，掌握市场先机</h1>
+        </header>
+
+        <div class="main-layout">
+            <div class="main-content">
+                <div class="feature-nav card">
+                    <h2>想抄谁的作业？</h2>
+                    <div class="feature-grid">
+                        <a href="#" class="feature-item">
+                            <div class="icon">🏦</div>
+                            <div class="title">顶级机构持仓</div>
+                        </a>
+                        <a href="#" class="feature-item">
+                            <div class="icon">👨‍💼</div>
+                            <div class="title">内部人交易</div>
+                        </a>
+                        <a href="#" class="feature-item">
+                            <div class="icon">📈</div>
+                            <div class="title">华尔街分析师</div>
+                        </a>
+                    </div>
+                </div>
+
+                <div class="filter-section">
+                    <div class="feed-header">
+                        <h2>实时动态</h2>
+                    </div>
+                    <div class="filter-toolbar">
+                        <input type="text" class="search-input" placeholder="可搜索公司(中/英)名称或股票代码">
+                        <div class="btn-group">
+                            <button class="btn active">全部</button>
+                            <button class="btn">买入/增持</button>
+                            <button class="btn">卖出/减持</button>
+                        </div>
+                        <div>
+                            <select class="time-select">
+                                <option>最近7天</option>
+                                <option>最近30天</option>
+                                <option>最近90天</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="lockers-wrapper">
+                        <span class="locker-label">锁定器:</span>
+                        <div class="locker" onclick="alert('锁定：只看[木头姐]的买入动态')">
+                            <svg viewBox="0 0 24 24"><path d="M12 2C9.243 2 7 4.243 7 7v3H6c-1.103 0-2 .897-2 2v8c0 1.103.897 2 2 2h12c1.103 0 2-.897 2-2v-8c0-1.103-.897-2-2-2h-1V7c0-2.757-2.243-5-5-5zm0 2c1.654 0 3 1.346 3 3v3H9V7c0-1.654 1.346-3 3-3z"></path></svg>
+                            <span>只看木头姐</span>
+                        </div>
+                        <div class="locker" onclick="alert('锁定：只看[CEO或CFO]的买入动态')">
+                           <svg viewBox="0 0 24 24"><path d="M12 2C9.243 2 7 4.243 7 7v3H6c-1.103 0-2 .897-2 2v8c0 1.103.897 2 2 2h12c1.103 0 2-.897 2-2v-8c0-1.103-.897-2-2-2h-1V7c0-2.757-2.243-5-5-5zm0 2c1.654 0 3 1.346 3 3v3H9V7c0-1.654 1.346-3 3-3z"></path></svg>
+                            <span>只看高管买入</span>
+                        </div>
+                        <div class="locker pro" onclick="alert('升级为Pro会员，即可创建和保存无限个自定义锁定器！')">
+                            <svg viewBox="0 0 24 24"><path d="M12,2C6.486,2,2,6.486,2,12s4.486,10,10,10s10-4.486,10-10S17.514,2,12,2z M13,17h-2v-2h2V17z M13,13h-2V7h2V13z"></path></svg>
+                            <span>升级Pro解锁</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 实时动态卡片 -->
+                <div class="feed-card">
+                    <img src="https://via.placeholder.com/50/2c3e50/ffffff?text=B" alt="Bridgewater" class="logo">
+                    <div class="content">
+                        <p class="title"><a href="#" class="clickable">桥水基金</a> <span class="tag tag-buy clickable-tag">增持</span></p>
+                        <p class="description">大幅增持 <a href="#" class="clickable"><strong>英伟达 (NVDA)</strong></a> 25万股。</p>
+                        <p class="meta">数据来源: 13F文件 | 日期: 2024-05-15</p>
+                    </div>
+                </div>
+                <div class="feed-card">
+                    <img src="https://via.placeholder.com/50/3498db/ffffff?text=CEO" alt="Insider" class="logo">
+                    <div class="content">
+                        <p class="title"><a href="#" class="clickable">Meta Platforms (META) CEO</a> <span class="tag tag-insider clickable-tag">内部人买入</span></p>
+                        <p class="description">Mark Zuckerberg 行权买入 5万股公司股票。</p>
+                        <p class="meta">数据来源: Form 4 | 日期: 2024-05-20</p>
+                    </div>
+                </div>
+                <div class="feed-card">
+                    <img src="https://via.placeholder.com/50/e74c3c/ffffff?text=A" alt="ARK" class="logo">
+                    <div class="content">
+                        <p class="title"><a href="#" class="clickable">方舟基金 (ARK Invest)</a> <span class="tag tag-sell clickable-tag">减持</span></p>
+                        <p class="description">卖出 <a href="#" class="clickable"><strong>特斯拉 (TSLA)</strong></a> 10万股。</p>
+                        <p class="meta">数据来源: 每日持仓报告 | 日期: 2024-05-19</p>
+                    </div>
+                </div>
+                <div class="feed-card">
+                    <img src="https://via.placeholder.com/50/f39c12/ffffff?text=BH" alt="Berkshire" class="logo">
+                    <div class="content">
+                        <p class="title"><a href="#" class="clickable">伯克希尔哈撒韦</a> <span class="tag tag-new clickable-tag">建仓</span></p>
+                        <p class="description">新建仓 <a href="#" class="clickable"><strong>安达保险 (CB)</strong></a>，占投资组合0.8%。</p>
+                        <p class="meta">数据来源: 13F文件 | 日期: 2024-05-15</p>
+                    </div>
+                </div>
+                <div class="feed-card">
+                    <img src="https://via.placeholder.com/50/9b59b6/ffffff?text=GS" alt="Goldman Sachs" class="logo">
+                    <div class="content">
+                        <p class="title"><a href="#" class="clickable">高盛分析师</a> <span class="tag tag-analyst clickable-tag">上调评级</span></p>
+                        <p class="description">将 <a href="#" class="clickable"><strong>微软 (MSFT)</strong></a> 的目标价从 $450 上调至 $500。</p>
+                        <p class="meta">数据来源: 分析师报告 | 日期: 2024-05-21</p>
+                    </div>
+                </div>
+            </div>
+
+            <aside class="sidebar">
+                <div class="card">
+                    <h3>热门机构</h3>
+                    <ul class="category-list">
+                        <li><a href="#">桥水基金</a></li>
+                        <li><a href="#">文艺复兴科技</a></li>
+                        <li><a href="#">方舟基金 (ARK)</a></li>
+                        <li><a href="#">高瓴资本</a></li>
+                        <li><a href="#" class="more-link">更多机构...</a></li>
+                    </ul>
+                </div>
+                <div class="card">
+                    <h3>热门股票</h3>
+                    <ul class="category-list">
+                        <li><a href="#">英伟达 (NVDA)</a></li>
+                        <li><a href="#">特斯拉 (TSLA)</a></li>
+                        <li><a href="#">苹果 (AAPL)</a></li>
+                        <li><a href="#" class="more-link">更多股票...</a></li>
+                    </ul>
+                </div>
+                <!-- 增加交易类型分类 -->
+                <div class="card">
+                    <h3>交易类型</h3>
+                    <ul class="category-list">
+                        <li><a href="#">🟢 买入/增持</a></li>
+                        <li><a href="#">🔴 卖出/减持</a></li>
+                        <li><a href="#">🟠 新建仓</a></li>
+                    </ul>
+                </div>
+            </aside>
+        </div>
+    </div>
+</body>
+</html>
